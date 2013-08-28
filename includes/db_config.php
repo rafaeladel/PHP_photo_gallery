@@ -3,7 +3,7 @@
     $connection_const = array (
         "DB_HOST" => "localhost",
         "DB_USERNAME" => "gallery",
-        "DB_PASSWORD" => "developments",
+        "DB_PASSWORD" => "password_here",
         "DB_NAME" => "photo_gallery"
     );
     

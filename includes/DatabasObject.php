@@ -41,7 +41,7 @@
         }
         
         public static function find_by_id(IDBAdapter $db, $id){
-            $query ="SELECT * FROM ".static::$table_name." WHERE id = " . $db->escape_query($id). " LIMIT 1";
+            $query ="SELECT * FROM ".static::$table_name." WHERE id = " . $id. " LIMIT 1";
             $result_array = static::find_by_sql($db, $query);
             //returning only the first user of the array. Or false if not found
             return !empty($result_array) ? array_shift($result_array) : false;
@@ -55,7 +55,8 @@
             //array in case of querying for more than one user
             //thus, more than one user object instantiation.
             $result_array = array();
-            while($record = $db->fetch_result($result)){
+            $result_set = $db->fetch_result($result);
+            foreach($result_set as $record){
                 array_push($result_array, static::instantiate($record));
             }
             return $result_array;
@@ -81,7 +82,7 @@
             $all_att = get_object_vars($this);
             foreach ($all_att as $name => $value) {
                 if(array_key_exists($name, $this->db_fields)){
-                    $this->db_fields[$name] = $db->escape_query($value);
+                    $this->db_fields[$name] = $value;
                 }
             }
         }
@@ -90,10 +91,10 @@
             $this->populate_db_fields($db);
             $query = "INSERT INTO ". static::$table_name ." (";
             $query .= join(", ",array_keys($this->db_fields));
-            $query .= ") VALUES ('";
-            $query .= join("', '",array_values($this->db_fields));
-            $query .= "')";
-            $db->query($query);
+            $query .= ") VALUES (";
+            $query .= join(",",str_split(str_repeat("?",count($this->db_fields))));
+            $query .= ")";
+            $db->query($query, array_values($this->db_fields));
             $this->id = $db->inserted_id();
             if(isset($this->id)){
                 return true;
@@ -106,13 +107,13 @@
             $this->populate_db_fields($db);
             $conditions = array();
             foreach ($this->db_fields as $name => $value) {
-                $line = "{$name}='{$value}'";
+                $line = "{$name}= ? ";
                 array_push($conditions, $line);
             }
             $query = "UPDATE ". static::$table_name ." SET ";
             $query .= join(", ",$conditions);
-            $query .= " WHERE id=" . $db->escape_query($this->id);
-            $db->query($query);
+            $query .= " WHERE id=" . $this->id;
+            $db->query($query, array_values($this->db_fields));
             if($db->affected_rows() == 1){
                 return true;
             } else {
@@ -122,7 +123,7 @@
 
         public function delete(IDBAdapter $db){
             $query = "DELETE FROM ". static::$table_name;
-            $query .= " WHERE id=". $db->escape_query($this->id);
+            $query .= " WHERE id=". $this->id;
             $query .= " LIMIT 1";
             $db->query($query);
             if($db->affected_rows() == 1){

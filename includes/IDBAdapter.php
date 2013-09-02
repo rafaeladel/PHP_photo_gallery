@@ -31,12 +31,7 @@ interface IDBAdapter {
          * Helper method : for getting id of the latest inserted row
          */
         public function inserted_id();
-        
-        /*
-         * Helper method : for escaping sql queries 
-         */
-        public function escape_query($str);
-        
+                
         /*
          * Method for closing the connection
          */

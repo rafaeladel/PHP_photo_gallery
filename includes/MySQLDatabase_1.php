@@ -11,8 +11,6 @@
         
         public $last_query = null;
         private $connection = null;
-        private $query = null;
-        private $db = null;
         
         function __construct(){
             $this->open_connection();
@@ -22,7 +20,7 @@
          * $connection getter 
          */
         public function get_connection(){
-            return isset($this->db) ? $this->connection : null;
+            return isset($this->connection) ? $this->connection : null;
         }
         
         
@@ -30,38 +28,29 @@
          * Method for openning the connection 
          */
         private function open_connection(){
-//            $this->connection = mysqli_connect(DB_HOST, DB_USERNAME, DB_PASSWORD, DB_NAME);
-            $connection_string = "mysql:host=". DB_HOST;
-            $connection_string .= ";dbname=". DB_NAME;
-            $this->db = new PDO($connection_string, DB_USERNAME, DB_PASSWORD); 
-            $this->db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-            if(!$this->db){
-                die("Error while openning the connection.");
+            $this->connection = mysqli_connect(DB_HOST, DB_USERNAME, DB_PASSWORD, DB_NAME);
+            if(!$this->connection){
+                die("Error while openning the connection : " . mysqli_error());
             }
         }
                 
         /*
          * Querying method
          */        
-        public function query($sql,array $param = null){
+        public function query($sql){
             $this->last_query = $sql;
-            try{
-                $query = $this->db->prepare($sql);
-                $query->execute($param);
-                $this->query = $query;
-            } catch(PDOException $e){
-                $this->confirm_query($query);
-            }
-            return $query;
+            $result = mysqli_query($this->connection, $sql);
+            $this->confirm_query($result);
+            return $result;
         }
         
         /*
          * Helper method : for confirming query
          */
-        private function confirm_query($query){
-            if($query->errorInfo()[0] != 0){
+        private function confirm_query($result){
+            if(!$result){
                 $output = "<hr>";
-                $output .= $query->errorInfo()[2];
+                $output .= mysqli_error($this->connection);
                 $output .= "<hr>";
                 $output .= "Last query : " . $this->last_query;
                 $output .= "<hr>";
@@ -73,36 +62,43 @@
          * Helper method : for fetching result
          */
         public function fetch_result($result){
-            return $result->fetchAll(PDO::FETCH_ASSOC);
+            return mysqli_fetch_assoc($result);
         }
         
         /*
          * Helper method : for getting number of rows for a query
          */
         public function num_rows($result){
-            return $result->rowCount();
+            return mysqli_num_rows($result);
         }
         
         /*
          * Helper method : for getting number of affected rows
          */
         public function affected_rows(){
-            return $this->query->rowCount();
+            return mysqli_affected_rows($this->connection);
         }
         
         /*
          * Helper method : for getting id of the latest inserted row
          */
         public function inserted_id(){
-            return $this->db->lastInsertId();
+            return mysqli_insert_id($this->connection);
+        }
+        
+        /*
+         * Helper method : for escaping sql queries 
+         */
+        public function escape_query($str){
+            return mysqli_real_escape_string($this->connection,$str);
         }
         
         /*
          * Method for closing the connection
          */
         public function close_connection(){
-            if(isset($this->db)){
-                $this->db = null;
+            if(isset($this->connection)){
+                mysqli_close($this->connection);
             }
         }
     }

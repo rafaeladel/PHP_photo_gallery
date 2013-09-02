@@ -8,7 +8,7 @@
     if(isset($_POST["submit"])){
         $photo = new Photograph();
         $photo->attach_file($_FILES["file_upload"]);
-        $photo->caption = trim($db->escape_query($_POST["caption"]));
+        $photo->caption = trim($_POST["caption"]);
         if($photo->save($db)){
             $session->message = "File uploaded successfuly";
             redirect_to("manage_photos.php");

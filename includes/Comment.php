@@ -52,7 +52,7 @@
         }
         
         public static function find_by_photograph(IDBAdapter $db, $photo_id){
-            $query = "SELECT * FROM comments WHERE photograph_id =" . $db->escape_query($photo_id) . " ORDER BY created DESC";
+            $query = "SELECT * FROM comments WHERE photograph_id =" . $photo_id . " ORDER BY created DESC";
             $comments = Comment::find_by_sql($db, $query);
             return $comments;
         }

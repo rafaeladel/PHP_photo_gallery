@@ -51,8 +51,8 @@
          * Authenticating users
          */
         public static function authenticate(IDBAdapter $db, $username, $password){
-            $username = $db->escape_query($username);
-            $password = $db->escape_query($password);
+//            $username = $db->escape_query($username);
+//            $password = $db->escape_query($password);
             
             $query = "SELECT * FROM users WHERE username = '{$username}' AND password = '{$password}' LIMIT 1";
             $result = self::find_by_sql($db, $query);
